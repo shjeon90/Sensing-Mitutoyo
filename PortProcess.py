@@ -1,41 +1,54 @@
 import argparse
 import serial
 import time
-import atexit
 import os
+import logging
 
 class PortHandler:
-    def __init__(self, port, baud_rate=9600, timeout=1, workdir=None):
+    def __init__(self, port, baud_rate=9600, timeout=1, workdir=None, log_level='debug'):
         self.port = port
         self.baud_rate = baud_rate
         self.timeout = timeout
         self.workdir = workdir
 
-        self.output_file = open(os.path.join(workdir, f'output-{port}.csv'), 'ab')
-        self.ser = serial.Serial(self.port, baud_rate, timeout=timeout)
+        self.log_level = logging.DEBUG if log_level == 'debug' else logging.INFO
 
-        atexit.register(self.terminate)
+        self.output_file = open(os.path.join(workdir, 'outputs', f'output-{port}.csv'), 'ab')
+        self.logger = logging.getLogger(port)
+        formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s')
+        file_handler = logging.FileHandler(os.path.join(workdir, 'logs', f'log-{port}.txt'))
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(file_handler)
+        self.logger.setLevel(level=self.log_level)
+
+        self.ser = serial.Serial(self.port, baud_rate, timeout=timeout)
 
     def terminate(self):
         try:
             self.output_file.flush()
             self.output_file.close()
+
             self.ser.close()
         except OSError:
             pass
 
     def run(self):
         while True:
+            self.logger.debug('wait to send a signal')
             if self.ser.writable():
+                self.logger.debug('send a signal')
                 self.ser.write(b'\x31\x0d')
 
+            self.logger.debug('wait to receive data')
             if self.ser.readable():
                 data = self.ser.read(15)
+                self.logger.debug('data received')
                 data = data.decode().strip()
 
                 if data.startswith('01A'):
                     data = data[3:]
                     cur_time = time.time() * 1000
+                    self.logger.debug(f'record data: {data}')
 
                     self.output_file.write(f'{cur_time},{float(data)}\n'.encode())
                     self.output_file.flush()
@@ -47,6 +60,7 @@ def parse_args():
     parser.add_argument('-b', dest='baud_rate', required=True, type=int)
     parser.add_argument('-t', dest='timeout', default=1, type=int)
     parser.add_argument('-w', dest='workdir', required=True)
+    parser.add_argument('-l', dest='log_level', choices=['info', 'debug'])
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -55,6 +69,10 @@ if __name__ == '__main__':
     baud_rate = args.baud_rate
     timeout = args.timeout
     workdir = args.workdir
+    log_level = args.log_level
 
-    handler = PortHandler(port, baud_rate, workdir=workdir)
-    handler.run()
+    handler = PortHandler(port, baud_rate, workdir=workdir, log_level=log_level)
+    try:
+        handler.run()
+    except KeyboardInterrupt:
+        handler.terminate()

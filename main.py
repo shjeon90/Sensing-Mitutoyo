@@ -28,6 +28,7 @@ def parse_args():
     parser.add_argument('-b', dest='baud_rate', default=9600, type=int)
     parser.add_argument('-w', dest='workdir', required=True)
     parser.add_argument('-t', dest='timeout', default=1, type=int)
+    parser.add_argument('-l', dest='log_level', choices=['info', 'debug'], default='debug')
     return parser.parse_args()
 
 def main():
@@ -35,23 +36,27 @@ def main():
     baud_rate = args.baud_rate
     workdir = args.workdir
     timeout = args.timeout
+    log_level = args.log_level
 
     print('Configurations')
     print(f'- baud rate: {baud_rate}')
     print(f'- timeout: {timeout}')
     print(f'- work dir: {workdir}')
+    print(f'- log level: {log_level}')
     print()
-
-    # baud_rate = 9600
-    # workdir = './workdir'
-    # timeout = 1
 
     if not os.path.exists(workdir):
         os.mkdir(workdir)
 
+    if not os.path.exists(os.path.join(workdir, 'outputs')):
+        os.mkdir(os.path.join(workdir, 'outputs'))
+
+    if not os.path.exists(os.path.join(workdir, 'logs')):
+        os.mkdir(os.path.join(workdir, 'logs'))
+
     available_ports = list_target_ports()
 
-    monitor = ProcessMonitor(available_ports, baud_rate, timeout=timeout, workdir=workdir)
+    monitor = ProcessMonitor(available_ports, baud_rate, timeout=timeout, workdir=workdir, log_level=log_level)
     monitor.run()
 
 

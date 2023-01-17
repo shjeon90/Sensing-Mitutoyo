@@ -7,11 +7,12 @@ import signal
 import time
 
 class ProcessMonitor:
-    def __init__(self, available_ports, baud_rate=9600, timeout=1, workdir=None):
+    def __init__(self, available_ports, baud_rate=9600, timeout=1, workdir=None, log_level='debug'):
         self.available_ports = available_ports
         self.baud_rate = baud_rate
         self.timeout = timeout
         self.workdir = workdir
+        self.log_level = log_level
 
         self.processes = []
         self.map_pid_port = {}
@@ -22,8 +23,8 @@ class ProcessMonitor:
         print('kill all children')
         for p in self.processes:
             try:
-                p.terminate()
-                os.kill(p.pid, signal.SIGTERM)
+                # p.terminate()
+                os.kill(p.pid, signal.SIGINT)
             except OSError:
                 pass
 
@@ -32,6 +33,7 @@ class ProcessMonitor:
         cmd += ['-p', port]
         cmd += ['-b', str(baud_rate)]
         cmd += ['-w', workdir]
+        cmd += ['-l' , self.log_level]
 
         return cmd
 
