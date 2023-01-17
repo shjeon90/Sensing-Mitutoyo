@@ -15,7 +15,7 @@ You should first install USB-ITN for serial ports.
 
 ## Run
 ```Shell
->> python main.py -b 9600 -w ./workdir -t 1
+>> python main.py -b 9600 -w ./workdir -t 1 -l debug
 
 // shortcut
 >> python main.py -w ./workdir
