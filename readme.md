@@ -20,3 +20,5 @@ You should first install USB-ITN for serial ports.
 // shortcut
 >> python main.py -w ./workdir
 ```
+
+- workdir: contains log files and output(csv) files.
