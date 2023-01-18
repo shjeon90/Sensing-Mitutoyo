@@ -10,10 +10,9 @@ class PortHandler:
         self.baud_rate = baud_rate
         self.timeout = timeout
         self.workdir = workdir
+        self.output_file = open(os.path.join(workdir, 'outputs', f'output-{port}.csv'), 'ab')
 
         self.log_level = logging.DEBUG if log_level == 'debug' else logging.INFO
-
-        self.output_file = open(os.path.join(workdir, 'outputs', f'output-{port}.csv'), 'ab')
         self.logger = logging.getLogger(port)
         formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s')
         file_handler = logging.FileHandler(os.path.join(workdir, 'logs', f'log-{port}.txt'))

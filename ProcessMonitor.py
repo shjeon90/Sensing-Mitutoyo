@@ -6,6 +6,30 @@ import atexit
 import signal
 import time
 
+
+def generate_cmd(port, baud_rate=9600, workdir=None, log_level='debug'):
+    cmd = [sys.executable, os.path.join(os.path.dirname(__file__), 'PortProcess.py')]
+    cmd += ['-p', port]
+    cmd += ['-b', str(baud_rate)]
+    cmd += ['-w', workdir]
+    cmd += ['-l', log_level]
+
+    return cmd
+
+def run_process(port, baud_rate=9600, workdir=None, log_level='debug'):
+    cmd = generate_cmd(port, baud_rate, workdir, log_level)
+    # cmd = ['ipconfig']
+    p = subprocess.Popen(cmd,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    try:
+        stdout, stderr = p.communicate()
+        print(stdout)
+        print(stderr)
+    except:
+        pass
+
 class ProcessMonitor:
     def __init__(self, available_ports, baud_rate=9600, timeout=1, workdir=None, log_level='debug'):
         self.available_ports = available_ports
@@ -28,28 +52,6 @@ class ProcessMonitor:
             except OSError:
                 pass
 
-    def generate_cmd(self, port, baud_rate=9600, workdir=None):
-        cmd = [sys.executable, os.path.join(os.path.dirname(__file__), 'PortProcess.py')]
-        cmd += ['-p', port]
-        cmd += ['-b', str(baud_rate)]
-        cmd += ['-w', workdir]
-        cmd += ['-l' , self.log_level]
-
-        return cmd
-
-    def run_process(self, port, baud_rate=9600, workdir=None):
-        cmd = self.generate_cmd(port, baud_rate, workdir)
-        p = subprocess.Popen(cmd,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        try:
-            stdout, stderr = p.communicate()
-            print(stdout)
-            print(stderr)
-        except:
-            pass
-
     def create_process(self):
         dead_processes = [p for p in self.processes if not p.is_alive()]
         self.processes = [p for p in self.processes if p.is_alive()]
@@ -64,8 +66,8 @@ class ProcessMonitor:
         for port in dead_ports:
             print(f'Restart to read data from {port}\n')
 
-            process = multiprocessing.Process(target=self.run_process,
-                                              args=(port, self.baud_rate, self.workdir))
+            process = multiprocessing.Process(target=run_process,
+                                              args=(port, self.baud_rate, self.workdir, self.log_level))
 
             process.start()
             self.map_pid_port[process.pid] = port
@@ -75,15 +77,17 @@ class ProcessMonitor:
         for port in self.available_ports:
             print(f'Start to read data from {port.name}')
 
-            process = multiprocessing.Process(target=self.run_process,
-                                              args=(port.name, self.baud_rate, self.workdir))
-            self.map_pid_port[process.pid] = port.name
+            process = multiprocessing.Process(target=run_process,
+                                              args=(port.name, self.baud_rate, self.workdir, self.log_level))
             self.processes.append(process)
         print()
 
         try:
             for p in self.processes:
                 p.start()
+                # print(f'pid: {p.pid}')
+                self.map_pid_port[p.pid] = port.name
+                print()
 
             while True:
                 self.create_process()

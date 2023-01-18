@@ -3,12 +3,13 @@ import os
 import argparse
 import serial.tools.list_ports
 from ProcessMonitor import ProcessMonitor
+from Test import Port
 
 def list_target_ports():
     def fn(port):
         m = re.match('COM(\d+)', port.name)
         if m:
-            return m.group(1)
+            return int(m.group(1))
 
     ports = serial.tools.list_ports.comports()
     available_ports = [
@@ -30,6 +31,21 @@ def parse_args():
     parser.add_argument('-t', dest='timeout', default=1, type=int)
     parser.add_argument('-l', dest='log_level', choices=['info', 'debug'], default='debug')
     return parser.parse_args()
+
+def generate_test_ports():
+    def fn(port):
+        m = re.match('COM(\d+)', port.name)
+        if m:
+            return int(m.group(1))
+
+    ports = []
+    for i in range(3, 70):
+        port = Port(f'COM{i}', description='USB-ITN')
+        ports.append(port)
+
+    ports.sort(key=fn)
+
+    return ports
 
 def main():
     args = parse_args()
@@ -55,6 +71,7 @@ def main():
         os.mkdir(os.path.join(workdir, 'logs'))
 
     available_ports = list_target_ports()
+    # available_ports = generate_test_ports()
 
     monitor = ProcessMonitor(available_ports, baud_rate, timeout=timeout, workdir=workdir, log_level=log_level)
     monitor.run()
