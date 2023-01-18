@@ -6,7 +6,7 @@ from ProcessMonitor import ProcessMonitor
 
 def list_target_ports():
     def fn(port):
-        m = re.match('COM(\d+)', port.description)
+        m = re.match('COM(\d+)', port.name)
         if m:
             return m.group(1)
 
