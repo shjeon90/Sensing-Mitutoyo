@@ -7,17 +7,18 @@ import signal
 import time
 
 
-def generate_cmd(port, baud_rate=9600, workdir=None, log_level='debug'):
+def generate_cmd(port, baud_rate=9600, workdir=None, log_level='debug', interval=1):
     cmd = [sys.executable, os.path.join(os.path.dirname(__file__), 'PortProcess.py')]
     cmd += ['-p', port]
     cmd += ['-b', str(baud_rate)]
     cmd += ['-w', workdir]
     cmd += ['-l', log_level]
+    cmd += ['-i', str(interval)]
 
     return cmd
 
-def run_process(port, baud_rate=9600, workdir=None, log_level='debug'):
-    cmd = generate_cmd(port, baud_rate, workdir, log_level)
+def run_process(port, baud_rate=9600, workdir=None, log_level='debug', interval=1):
+    cmd = generate_cmd(port, baud_rate, workdir, log_level, interval)
     # cmd = ['ipconfig']
     p = subprocess.Popen(cmd,
                          stdin=subprocess.PIPE,
@@ -31,12 +32,13 @@ def run_process(port, baud_rate=9600, workdir=None, log_level='debug'):
         pass
 
 class ProcessMonitor:
-    def __init__(self, available_ports, baud_rate=9600, timeout=1, workdir=None, log_level='debug'):
+    def __init__(self, available_ports, baud_rate=9600, timeout=1, workdir=None, log_level='debug', interval=1):
         self.available_ports = available_ports
         self.baud_rate = baud_rate
         self.timeout = timeout
         self.workdir = workdir
         self.log_level = log_level
+        self.interval = interval
 
         self.processes = []
         self.map_pid_port = {}
@@ -74,16 +76,18 @@ class ProcessMonitor:
             self.processes.append(process)
 
     def run(self):
+        ports = []
         for port in self.available_ports:
             print(f'Start to read data from {port.name}')
 
             process = multiprocessing.Process(target=run_process,
-                                              args=(port.name, self.baud_rate, self.workdir, self.log_level))
+                                              args=(port.name, self.baud_rate, self.workdir, self.log_level, self.interval))
             self.processes.append(process)
+            ports.append(port)
         print()
 
         try:
-            for p in self.processes:
+            for p, port in zip(self.processes, ports):
                 p.start()
                 # print(f'pid: {p.pid}')
                 self.map_pid_port[p.pid] = port.name

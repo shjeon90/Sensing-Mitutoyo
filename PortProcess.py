@@ -5,11 +5,12 @@ import os
 import logging
 
 class PortHandler:
-    def __init__(self, port, baud_rate=9600, timeout=1, workdir=None, log_level='debug'):
+    def __init__(self, port, baud_rate=9600, timeout=1, workdir=None, log_level='debug', interval=1):
         self.port = port
         self.baud_rate = baud_rate
         self.timeout = timeout
         self.workdir = workdir
+        self.interval = interval
         self.output_file = open(os.path.join(workdir, 'outputs', f'output-{port}.csv'), 'ab')
 
         self.log_level = logging.DEBUG if log_level == 'debug' else logging.INFO
@@ -20,7 +21,7 @@ class PortHandler:
         self.logger.addHandler(file_handler)
         self.logger.setLevel(level=self.log_level)
 
-        self.ser = serial.Serial(self.port, baud_rate, timeout=timeout)
+        self.ser = serial.Serial(self.port, baud_rate, timeout=0)
 
     def terminate(self):
         try:
@@ -52,6 +53,8 @@ class PortHandler:
                     self.output_file.write(f'{cur_time},{float(data)}\n'.encode())
                     self.output_file.flush()
 
+            time.sleep(self.interval)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='sensing')
@@ -60,6 +63,7 @@ def parse_args():
     parser.add_argument('-t', dest='timeout', default=1, type=int)
     parser.add_argument('-w', dest='workdir', required=True)
     parser.add_argument('-l', dest='log_level', choices=['info', 'debug'])
+    parser.add_argument('-i', dest='interval', default=1, type=int)
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -69,8 +73,9 @@ if __name__ == '__main__':
     timeout = args.timeout
     workdir = args.workdir
     log_level = args.log_level
+    interval = args.interval
 
-    handler = PortHandler(port, baud_rate, workdir=workdir, log_level=log_level)
+    handler = PortHandler(port, baud_rate, workdir=workdir, log_level=log_level, interval=interval)
     try:
         handler.run()
     except KeyboardInterrupt:

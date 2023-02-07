@@ -28,8 +28,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='sensing')
     parser.add_argument('-b', dest='baud_rate', default=9600, type=int)
     parser.add_argument('-w', dest='workdir', required=True)
-    parser.add_argument('-t', dest='timeout', default=1, type=int)
-    parser.add_argument('-l', dest='log_level', choices=['info', 'debug'], default='debug')
+    # parser.add_argument('-t', dest='timeout', default=1, type=int)
+    parser.add_argument('-l', dest='log_level', choices=['info', 'debug'], default='info')
+    parser.add_argument('-i', dest='interval', default=1, type=int)
     return parser.parse_args()
 
 def generate_test_ports():
@@ -51,14 +52,16 @@ def main():
     args = parse_args()
     baud_rate = args.baud_rate
     workdir = args.workdir
-    timeout = args.timeout
+    # timeout = args.timeout
     log_level = args.log_level
+    interval = args.interval
 
     print('Configurations')
     print(f'- baud rate: {baud_rate}')
-    print(f'- timeout: {timeout}')
+    # print(f'- timeout: {timeout}')
     print(f'- work dir: {workdir}')
     print(f'- log level: {log_level}')
+    print(f'- interval: {interval}')
     print()
 
     if not os.path.exists(workdir):
@@ -73,7 +76,11 @@ def main():
     available_ports = list_target_ports()
     # available_ports = generate_test_ports()
 
-    monitor = ProcessMonitor(available_ports, baud_rate, timeout=timeout, workdir=workdir, log_level=log_level)
+    monitor = ProcessMonitor(available_ports, baud_rate,
+                             timeout=0,
+                             workdir=workdir,
+                             log_level=log_level,
+                             interval=interval)
     monitor.run()
 
 
