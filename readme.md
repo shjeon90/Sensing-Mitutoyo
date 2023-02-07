@@ -1,7 +1,7 @@
 ## Sensing
 Recording the data from Mitutoyo sensors.
 This project have been implemented to run on `Windows`.
-It automatically search all ports for Mitutoyo so that you don't have to exhaustively set them.
+It automatically searches all ports for Mitutoyo so that you don't have to exhaustively set them.
 
 ## Installation
 You should first install USB-ITN for serial ports.
@@ -15,7 +15,7 @@ You should first install USB-ITN for serial ports.
 
 ## Run
 ```Shell
->> python main.py -b 9600 -w ./workdir -t 1 -l debug
+>> python main.py -b 9600 -w ./workdir -l debug -i 1
 
 // shortcut
 >> python main.py -w ./workdir

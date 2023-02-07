@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument('-w', dest='workdir', required=True)
     # parser.add_argument('-t', dest='timeout', default=1, type=int)
     parser.add_argument('-l', dest='log_level', choices=['info', 'debug'], default='info')
-    parser.add_argument('-i', dest='interval', default=1, type=int)
+    parser.add_argument('-i', dest='interval', default=1, type=int, help='minimum 1')
     return parser.parse_args()
 
 def generate_test_ports():
@@ -54,7 +54,7 @@ def main():
     workdir = args.workdir
     # timeout = args.timeout
     log_level = args.log_level
-    interval = args.interval
+    interval = max(args.interval, 1)
 
     print('Configurations')
     print(f'- baud rate: {baud_rate}')
