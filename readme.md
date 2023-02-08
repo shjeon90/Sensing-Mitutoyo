@@ -22,3 +22,10 @@ You should first install USB-ITN for serial ports.
 ```
 
 - workdir: contains log files and output(csv) files.
+
+
+## Update
+- Changed the default logging level from debug to info.
+- Removed timeout option(`-t`).
+- Interval option(`-i`) was added.
+- Fixed timestamp representation from long integer to year/month/day/hour/minute/second.
