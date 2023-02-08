@@ -47,10 +47,11 @@ class PortHandler:
 
                 if data.startswith('01A'):
                     data = data[3:]
-                    cur_time = time.time() * 1000
+                    # cur_time = time.time() * 1000
+                    year, month, day, hour, minute, sec = map(int, time.strftime("%Y %m %d %H %M %S").split())
                     self.logger.debug(f'record data: {data}')
 
-                    self.output_file.write(f'{cur_time},{float(data)}\n'.encode())
+                    self.output_file.write(f'{year},{month},{day},{hour},{minute},{sec},{float(data)}\n'.encode())
                     self.output_file.flush()
 
             time.sleep(self.interval)
